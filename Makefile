@@ -60,6 +60,7 @@ OBJECTS += 4DGL-uLCD-SE/uLCD_4DGL_Text.o
 OBJECTS += FastPWM/FastPWM_common.o
 OBJECTS += FastPWM/Device/FastPWM_LPC1768.o
 OBJECTS += YMF262/YMF262.o
+OBJECTS += DirBrowser.o
 OBJECTS += main.o
 
 SYS_OBJECTS += mbed/TARGET_LPC1768/TOOLCHAIN_GCC_ARM/analogin_api.o
