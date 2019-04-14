@@ -11,6 +11,7 @@
 #include "DirBrowser.h"
 
 Serial pc(USBTX, USBRX);
+DigitalOut leds[4] = { DigitalOut(LED1), DigitalOut(LED2), DigitalOut(LED3), DigitalOut(LED4) };
 
 void rad_write_reg_cb(void* userp, uint16_t reg, uint8_t val)
 {
@@ -40,24 +41,32 @@ int main() {
 	bool playing = false;
 	
 	pc.printf("Start\r\n");
-	wait_ms(1000);
 	
 	FastPWM clock(p26);
-	clock.period_ticks(6);
+	//clock.period_ticks(6);
+	clock.period(.001);
 	clock.write(.5);
 	
-	//PinName dataBus[8] =  {p9, p10, p11, p12, p13, p14, p15, p16};
 	PinName dataBus[8] =  {p16, p15, p14, p13, p12, p11, p10, p9};
 	YMF262 ymf262(p21, p22, p23, p24, p25, p29, dataBus);
 	
-	//ymf262.write_reg(0, 2, 5);
+	//ymf262.tst_all_high();
+	
+	leds[3] = 1;
+	ymf262.write_reg(0, 2, 5);
 	ymf262.write_reg(0, 3, 5);
 	
     while(1)
 	{
-		uint8_t status = ymf262.read_status();
+		uint8_t status = 128;
+		status = ymf262.read_status();
+		
+		leds[0] = status & 0x80;
+		leds[1] = status & 0x40;
+		leds[2] = status & 0x20;
 		if(status != 0)
 			pc.printf("%d\r\n", status);
+		
 		wait_ms(5);
 		if(!action)
 		{
