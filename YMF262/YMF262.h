@@ -25,8 +25,8 @@ private:
 	DigitalInOut IC;	// briefly move low to clear all registers
 	BusInOut DataBus;	// 8-bit data bus
 	
-	void rst_high();
-	void rst_low();
+	void ic_high();
+	void ic_low();
 	
 };
 

@@ -22,6 +22,10 @@
 namespace mbed {
 /** \addtogroup platform */
 /** @{*/
+/**
+ * \defgroup platform_Transaction Transaction class
+ * @{
+ */
 
 /** Transaction structure
  */
@@ -37,25 +41,29 @@ typedef struct {
 
 /** Transaction class defines a transaction.
  *
- * @Note Synchronization level: Not protected
+ * @note Synchronization level: Not protected
  */
 template<typename Class>
 class Transaction {
 public:
-    Transaction(Class *tpointer, const transaction_t& transaction) : _obj(tpointer), _data(transaction) {
+    Transaction(Class *tpointer, const transaction_t &transaction) : _obj(tpointer), _data(transaction)
+    {
     }
 
-    Transaction() : _obj(), _data() {
+    Transaction() : _obj(), _data()
+    {
     }
 
-    ~Transaction() {
+    ~Transaction()
+    {
     }
 
     /** Get object's instance for the transaction
      *
      * @return The object which was stored
      */
-    Class* get_object() {
+    Class *get_object()
+    {
         return _obj;
     }
 
@@ -63,17 +71,18 @@ public:
      *
      * @return The transaction which was stored
      */
-    transaction_t* get_transaction() {
+    transaction_t *get_transaction()
+    {
         return &_data;
     }
 
 private:
-    Class* _obj;
+    Class *_obj;
     transaction_t _data;
 };
+/**@}*/
 
+/**@}*/
 }
 
 #endif
-
-/** @}*/

@@ -18,26 +18,29 @@
 
 #include "platform/platform.h"
 #include "drivers/Ticker.h"
+#include "platform/NonCopyable.h"
 
-#if DEVICE_LOWPOWERTIMER
+#if defined (DEVICE_LPTICKER) || defined(DOXYGEN_ONLY)
 
 #include "hal/lp_ticker_api.h"
 
 namespace mbed {
 /** \addtogroup drivers */
-/** @{*/
 
 /** Low Power Ticker
  *
- * @Note Synchronization level: Interrupt safe
+ * @note Synchronization level: Interrupt safe
+ * @ingroup drivers
  */
-class LowPowerTicker : public Ticker {
+class LowPowerTicker : public Ticker, private NonCopyable<LowPowerTicker> {
 
 public:
-    LowPowerTicker() : Ticker(get_lp_ticker_data()) {
+    LowPowerTicker() : Ticker(get_lp_ticker_data())
+    {
     }
 
-    virtual ~LowPowerTicker() {
+    virtual ~LowPowerTicker()
+    {
     }
 };
 
@@ -46,5 +49,3 @@ public:
 #endif
 
 #endif
-
-/** @}*/

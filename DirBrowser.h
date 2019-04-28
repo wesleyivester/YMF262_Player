@@ -18,6 +18,7 @@ public:
 	
 	bool selectionIsFile();
 	bool selectionIsDir();
+	void redraw();
 	
 private:
 	std::string _root;

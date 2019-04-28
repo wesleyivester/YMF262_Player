@@ -14,6 +14,11 @@ DirBrowser::~DirBrowser()
 {
 }
 
+void DirBrowser::redraw()
+{
+	displayDir();
+}
+
 void DirBrowser::selectNext()
 {
 	if(selectedDirEntry < dirEntries.size() - 1)

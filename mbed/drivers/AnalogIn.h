@@ -18,7 +18,7 @@
 
 #include "platform/platform.h"
 
-#if DEVICE_ANALOGIN
+#if defined (DEVICE_ANALOGIN) || defined(DOXYGEN_ONLY)
 
 #include "hal/analogin_api.h"
 #include "platform/SingletonPtr.h"
@@ -26,11 +26,10 @@
 
 namespace mbed {
 /** \addtogroup drivers */
-/** @{*/
 
 /** An analog input, used for reading the voltage on a pin
  *
- * @Note Synchronization level: Thread safe
+ * @note Synchronization level: Thread safe
  *
  * Example:
  * @code
@@ -48,6 +47,7 @@ namespace mbed {
  *     }
  * }
  * @endcode
+ * @ingroup drivers
  */
 class AnalogIn {
 
@@ -56,9 +56,9 @@ public:
     /** Create an AnalogIn, connected to the specified pin
      *
      * @param pin AnalogIn pin to connect to
-     * @param name (optional) A string to identify the object
      */
-    AnalogIn(PinName pin) {
+    AnalogIn(PinName pin)
+    {
         lock();
         analogin_init(&_adc, pin);
         unlock();
@@ -68,7 +68,8 @@ public:
      *
      * @returns A floating-point value representing the current input voltage, measured as a percentage
      */
-    float read() {
+    float read()
+    {
         lock();
         float ret = analogin_read(&_adc);
         unlock();
@@ -78,9 +79,10 @@ public:
     /** Read the input voltage, represented as an unsigned short in the range [0x0, 0xFFFF]
      *
      * @returns
-     *   16-bit unsigned short representing the current input voltage, normalised to a 16-bit value
+     *   16-bit unsigned short representing the current input voltage, normalized to a 16-bit value
      */
-    unsigned short read_u16() {
+    unsigned short read_u16()
+    {
         lock();
         unsigned short ret = analogin_read_u16(&_adc);
         unlock();
@@ -100,27 +102,32 @@ public:
      * if(volume > 0.25) { ... }
      * @endcode
      */
-    operator float() {
+    operator float()
+    {
         // Underlying call is thread safe
         return read();
     }
 
-    virtual ~AnalogIn() {
+    virtual ~AnalogIn()
+    {
         // Do nothing
     }
 
 protected:
-
-    virtual void lock() {
+    #if !defined(DOXYGEN_ONLY)
+    virtual void lock()
+    {
         _mutex->lock();
     }
 
-    virtual void unlock() {
+    virtual void unlock()
+    {
         _mutex->unlock();
     }
 
     analogin_t _adc;
     static SingletonPtr<PlatformMutex> _mutex;
+    #endif //!defined(DOXYGEN_ONLY)
 };
 
 } // namespace mbed
@@ -129,4 +136,3 @@ protected:
 
 #endif
 
-/** @}*/

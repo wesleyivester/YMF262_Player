@@ -9,9 +9,18 @@
 #include <stdint.h>
 #include "FastPWM.h"
 #include "DirBrowser.h"
+#include "USBMIDI.h"
+#include "YMF262MIDI.h"
 
 Serial pc(USBTX, USBRX);
 DigitalOut leds[4] = { DigitalOut(LED1), DigitalOut(LED2), DigitalOut(LED3), DigitalOut(LED4) };
+
+PinName dataBus[8] = {p16, p15, p14, p13, p12, p11, p10, p9};
+YMF262 ymf262(p21, p22, p23, p24, p25, p29, dataBus);
+
+uLCD_4DGL lcd(p28, p27, p30);
+
+YMF262MIDI ymfmidi(&ymf262, &lcd);
 
 void rad_write_reg_cb(void* userp, uint16_t reg, uint8_t val)
 {
@@ -21,8 +30,23 @@ void rad_write_reg_cb(void* userp, uint16_t reg, uint8_t val)
 	//pc.printf("%d, %d\r\n", reg, val);
 }
 
-int main() {	
-	uLCD_4DGL lcd(p28, p27, p30);
+void process_midi_msg(MIDIMessage msg)
+{
+	switch (msg.type())
+	{
+		case MIDIMessage::NoteOnType:
+			ymfmidi.noteOn(msg.channel(), msg.key());
+			leds[0] = 1;
+			break;
+		case MIDIMessage::NoteOffType:
+			ymfmidi.noteOff(msg.channel(), msg.key());
+			leds[0] = 0;
+			break;
+	}    
+}
+
+int main()
+{
 	lcd.baudrate(3000000);
 	lcd.background_color(0x000000);
 	lcd.cls();
@@ -31,10 +55,11 @@ int main() {
 	
 	DirBrowser dir("/sd", &lcd);
 	
-	DigitalIn up(p17, PullUp);
+	DigitalIn up(p18, PullUp);
 	DigitalIn down(p19, PullUp);
 	DigitalIn action(p20, PullUp);
-	bool up_press(false), down_press(false), action_press(false);
+	DigitalIn action2(p26, PullUp);
+	bool up_press(false), down_press(false), action_press(false), action2_press(false);
 	
 	RADPlayer radplayer;
 	Ticker updateTicker;
@@ -42,31 +67,18 @@ int main() {
 	
 	pc.printf("Start\r\n");
 	
-	FastPWM clock(p26);
+	//FastPWM clock(p26);
 	//clock.period_ticks(6);
-	clock.period(.001);
-	clock.write(.5);
+	//clock.period(.001);
+	//clock.write(.5);
 	
-	PinName dataBus[8] =  {p16, p15, p14, p13, p12, p11, p10, p9};
-	YMF262 ymf262(p21, p22, p23, p24, p25, p29, dataBus);
+	USBMIDI midi;
+	midi.attach(process_midi_msg); 
 	
-	//ymf262.tst_all_high();
-	
-	leds[3] = 1;
-	ymf262.write_reg(0, 2, 5);
-	ymf262.write_reg(0, 3, 5);
+	ymfmidi.init();
 	
     while(1)
-	{
-		uint8_t status = 128;
-		status = ymf262.read_status();
-		
-		leds[0] = status & 0x80;
-		leds[1] = status & 0x40;
-		leds[2] = status & 0x20;
-		if(status != 0)
-			pc.printf("%d\r\n", status);
-		
+	{		
 		wait_ms(5);
 		if(!action)
 		{
@@ -139,6 +151,23 @@ int main() {
 		else
 		{
 			down_press = false;
+		}
+		
+		if(!action2)
+		{
+			if(!action2_press)
+			{
+				updateTicker.detach();
+				playing = false;
+				lcd.locate(0, 0);
+				lcd.printf("Playing Stopped\n");
+				ymfmidi.init();
+			}
+			action2_press = true;
+		}
+		else
+		{
+			action2_press = false;
 		}
     }
 }

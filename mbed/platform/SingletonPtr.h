@@ -1,6 +1,10 @@
 
 /** \addtogroup platform */
 /** @{*/
+/**
+ * \defgroup platform_SingletonPtr SingletonPtr class
+ * @{
+ */
 /* mbed Microcontroller Library
  * Copyright (c) 2006-2013 ARM Limited
  *
@@ -23,11 +27,11 @@
 #include <new>
 #include "platform/mbed_assert.h"
 #ifdef MBED_CONF_RTOS_PRESENT
-#include "cmsis_os.h"
+#include "cmsis_os2.h"
 #endif
 
 #ifdef MBED_CONF_RTOS_PRESENT
-extern osMutexId singleton_mutex_id;
+extern osMutexId_t singleton_mutex_id;
 #endif
 
 /** Lock the singleton mutex
@@ -39,7 +43,11 @@ extern osMutexId singleton_mutex_id;
 inline static void singleton_lock(void)
 {
 #ifdef MBED_CONF_RTOS_PRESENT
-    osMutexWait(singleton_mutex_id, osWaitForever);
+    if (!singleton_mutex_id) {
+        // RTOS has not booted yet so no mutex is needed
+        return;
+    }
+    osMutexAcquire(singleton_mutex_id, osWaitForever);
 #endif
 }
 
@@ -52,19 +60,23 @@ inline static void singleton_lock(void)
 inline static void singleton_unlock(void)
 {
 #ifdef MBED_CONF_RTOS_PRESENT
-    osMutexRelease (singleton_mutex_id);
+    if (!singleton_mutex_id) {
+        // RTOS has not booted yet so no mutex is needed
+        return;
+    }
+    osMutexRelease(singleton_mutex_id);
 #endif
 }
 
 /** Utility class for creating an using a singleton
  *
- * @Note Synchronization level: Thread safe
+ * @note Synchronization level: Thread safe
  *
- * @Note: This class must only be used in a static context -
+ * @note: This class must only be used in a static context -
  * this class must never be allocated or created on the
  * stack.
  *
- * @Note: This class is lazily initialized on first use.
+ * @note: This class is lazily initialized on first use.
  * This class is a POD type so if it is not used it will
  * be garbage collected.
  */
@@ -76,7 +88,8 @@ struct SingletonPtr {
      * @returns
      *   A pointer to the singleton
      */
-    T* get() {
+    T *get()
+    {
         if (NULL == _ptr) {
             singleton_lock();
             if (NULL == _ptr) {
@@ -95,7 +108,8 @@ struct SingletonPtr {
      * @returns
      *   A pointer to the singleton
      */
-    T* operator->() {
+    T *operator->()
+    {
         return get();
     }
 
@@ -106,5 +120,6 @@ struct SingletonPtr {
 };
 
 #endif
+/**@}*/
 
-/** @}*/
+/**@}*/

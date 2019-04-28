@@ -1,6 +1,3 @@
-
-/** \addtogroup platform */
-/** @{*/
 /* mbed Microcontroller Library
  * Copyright (c) 2006-2013 ARM Limited
  *
@@ -19,28 +16,69 @@
 #ifndef PLATFORM_MUTEX_H
 #define PLATFORM_MUTEX_H
 
+#include "platform/NonCopyable.h"
+
+/** \addtogroup platform
+ * @{
+ */
+
+/** \defgroup platform_PlatformMutex PlatformMutex class
+ * @{
+ */
+
+/** The PlatformMutex class is used to synchronize the execution of threads.
+ *
+ * Mbed drivers use the PlatformMutex class instead of rtos::Mutex.
+ * This enables the use of drivers when the Mbed OS is compiled without the RTOS.
+ *
+ * @note
+ * - When the RTOS is present, the PlatformMutex becomes a typedef for rtos::Mutex.
+ * - When the RTOS is absent, all methods are defined as noop.
+ */
+
 #ifdef MBED_CONF_RTOS_PRESENT
+
 #include "rtos/Mutex.h"
 typedef rtos::Mutex PlatformMutex;
+
 #else
-/** A stub mutex for when an RTOS is not present
-*/
-class PlatformMutex {
+
+class PlatformMutex: private mbed::NonCopyable<PlatformMutex> {
 public:
-    PlatformMutex() {
-        // Stub
-
-    }
-    ~PlatformMutex() {
-        // Stub
-    }
-
-    void lock() {
-        // Do nothing
+    /** Create a PlatformMutex object.
+     *
+     * @note When the RTOS is present, this is an alias for rtos::Mutex::Mutex().
+     */
+    PlatformMutex()
+    {
     }
 
-    void unlock() {
-        // Do nothing
+    /** PlatformMutex destructor.
+     *
+     * @note When the RTOS is present, this is an alias for rtos::Mutex::~Mutex().
+     */
+    ~PlatformMutex()
+    {
+    }
+
+    /** Wait until a PlatformMutex becomes available.
+     *
+     * @note
+     * - When the RTOS is present, this is an alias for rtos::Mutex::lock().
+     * - When the RTOS is absent, this is a noop.
+     */
+    void lock()
+    {
+    }
+
+    /** Unlock a PlatformMutex that the same thread has previously locked.
+     *
+     * @note
+     * - When the RTOS is present, this is an alias for rtos::Mutex::unlock().
+     * - When the RTOS is absent, this is a noop.
+     */
+    void unlock()
+    {
     }
 };
 
@@ -48,4 +86,6 @@ public:
 
 #endif
 
-/** @}*/
+/**@}*/
+
+/**@}*/

@@ -20,19 +20,17 @@ void YMF262::tst_all_high()
 	WR = 1;
 	A0 = 1;
 	A1 = 1;
-	rst_high();
+	ic_high();
 }
 
 void YMF262::clear()
 {
-	CS = 0;
-	rst_high();
-	wait_ms(5);
-	rst_low();
-	CS = 1;
-	wait_ms(5);
-	rst_high();
-	wait_ms(5);
+	ic_high();
+	wait_us(100);
+	ic_low();
+	wait_us(100);
+	ic_high();
+	wait_us(1);
 }
 
 void YMF262::write_reg(uint8_t array, uint8_t reg, uint8_t val)
@@ -45,16 +43,13 @@ void YMF262::write_reg(uint8_t array, uint8_t reg, uint8_t val)
 	DataBus.write(reg);
 	CS = 0;
 	wait_us(1);
-	WR = 1;
 	CS = 1;
 	wait_us(1);
 	
 	A0 = 1;
-	WR = 0;
 	DataBus.write(val);
 	CS = 0;
 	wait_us(1);
-	WR = 1;
 	CS = 1;
 	wait_us(1);
 }
@@ -76,12 +71,12 @@ uint8_t YMF262::read_status()
 	return status;
 }
 
-void YMF262::rst_high()
+void YMF262::ic_high()
 {
 	IC.input();
 }
 
-void YMF262::rst_low()
+void YMF262::ic_low()
 {
 	IC.output();
 	IC = 0;

@@ -17,16 +17,16 @@
 #define MBED_ETHERNET_H
 
 #include "platform/platform.h"
+#include "platform/NonCopyable.h"
 
-#if DEVICE_ETHERNET
+#if defined (DEVICE_ETHERNET) || defined(DOXYGEN_ONLY)
 
 namespace mbed {
 /** \addtogroup drivers */
-/** @{*/
 
 /** An ethernet interface, to use with the ethernet pins.
  *
- * @Note Synchronization level: Not protected
+ * @note Synchronization level: Not protected
  *
  * Example:
  * @code
@@ -53,12 +53,13 @@ namespace mbed {
  *     }
  * }
  * @endcode
+ * @ingroup drivers
  */
-class Ethernet {
+class Ethernet : private NonCopyable<Ethernet> {
 
 public:
 
-    /** Initialise the ethernet interface.
+    /** Initialize the ethernet interface.
      */
     Ethernet();
 
@@ -97,7 +98,7 @@ public:
      */
     int send();
 
-    /** Recevies an arrived ethernet packet.
+    /** Receives an arrived ethernet packet.
      *
      *  Receiving an ethernet packet will drop the last received ethernet packet
      *  and make a new ethernet packet ready to read.
@@ -109,17 +110,18 @@ public:
      */
     int receive();
 
-    /** Read from an recevied ethernet packet.
+    /** Read from an received ethernet packet.
      *
-     *  After receive returnd a number bigger than 0it is
+     *  After receive returned a number bigger than 0 it is
      *  possible to read bytes from this packet.
-     *  Read will write up to size bytes into data.
      *
-     *  It is possible to use read multible times.
+     *  @param data      Pointer to data packet
+     *  @param size      Size of data to be read.
+     *  @returns         The number of byte read.
+     *
+     *  @note It is possible to use read multiple times.
      *  Each time read will start reading after the last read byte before.
      *
-     *  @returns
-     *  The number of byte read.
      */
     int read(char *data, int size);
 
@@ -129,11 +131,11 @@ public:
      */
     void address(char *mac);
 
-    /** Returns if an ethernet link is pressent or not. It takes a wile after Ethernet initializion to show up.
+    /** Returns if an ethernet link is present or not. It takes a while after Ethernet initialization to show up.
      *
      *  @returns
-     *   0 if no ethernet link is pressent,
-     *   1 if an ethernet link is pressent.
+     *   0 if no ethernet link is present,
+     *   1 if an ethernet link is present.
      *
      * Example:
      * @code
@@ -172,5 +174,3 @@ public:
 #endif
 
 #endif
-
-/** @}*/
