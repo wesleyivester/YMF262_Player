@@ -24,7 +24,7 @@ USBMIDI::USBMIDI(uint16_t vendor_id, uint16_t product_id, uint16_t product_relea
  : USBDevice(vendor_id, product_id, product_release), cur_data(0), data_end(true)
 {
     midi_evt = NULL;
-    USBDevice::connect();
+    USBDevice::connect(false);
 }
 
 // write plain MIDIMessage that will be converted to USBMidi event packet

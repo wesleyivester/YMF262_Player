@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include "uLCD_4DGL.h"
+#include <cstdint>
 
 class DirBrowser
 {
@@ -24,7 +25,7 @@ private:
 	std::string _root;
 	uLCD_4DGL *_lcd;
 	
-	void displayDir();
+	void displayDir(bool redrawAll);
 	std::string currentPath;
 	void updateCurrentPathStr();
 	void loadDir();
@@ -38,6 +39,7 @@ private:
 	std::vector<std::string> path;
 	std::vector<DirEntry> dirEntries;
 	int selectedDirEntry;
+	int oldSelectedDirEntry;
 
 };
 

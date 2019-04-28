@@ -5,9 +5,10 @@ DirBrowser::DirBrowser(const std::string &root, uLCD_4DGL *lcd)
 	_root = root;
 	_lcd = lcd;
 	selectedDirEntry = 0;
+	oldSelectedDirEntry = 0;
 	updateCurrentPathStr();
 	loadDir();
-	displayDir();
+	displayDir(true);
 }
 
 DirBrowser::~DirBrowser()
@@ -16,15 +17,16 @@ DirBrowser::~DirBrowser()
 
 void DirBrowser::redraw()
 {
-	displayDir();
+	displayDir(true);
 }
 
 void DirBrowser::selectNext()
 {
 	if(selectedDirEntry < dirEntries.size() - 1)
 	{
+		oldSelectedDirEntry = selectedDirEntry;
 		selectedDirEntry++;
-		displayDir();
+		displayDir(false);
 	}
 }
 
@@ -32,8 +34,9 @@ void DirBrowser::selectPrev()
 {
 	if(selectedDirEntry > 0)
 	{
+		oldSelectedDirEntry = selectedDirEntry;
 		selectedDirEntry--;
-		displayDir();
+		displayDir(false);
 	}
 }
 
@@ -49,9 +52,10 @@ bool DirBrowser::enterDir()
 		else
 			path.push_back(dirEntries[selectedDirEntry].name);
 		selectedDirEntry = 0;
+		oldSelectedDirEntry = 0;
 		updateCurrentPathStr();
 		loadDir();
-		displayDir();
+		displayDir(true);
 		return true;
 	}
 	return false;
@@ -125,17 +129,35 @@ bool DirBrowser::selectionIsDir()
 	return dirEntries[selectedDirEntry].isDir;
 }
 
-void DirBrowser::displayDir()
+void DirBrowser::displayDir(bool redrawAll)
 {
 	char buff[40];
-	int display_min = 0;
-	if(selectedDirEntry - 15 > 0)
-		display_min = selectedDirEntry - 15;
-	int display_max = display_min + 15;
+	int16_t display_min = selectedDirEntry & 0xFFF0;
+	int16_t display_max = display_min + 15;
 	if(display_max >= dirEntries.size())
 		display_max = dirEntries.size() - 1;
 	int color = 0;
-	for(int i(display_min); i <= display_max; ++i)
+	
+	int16_t startOffset = 0;
+	int16_t endOffset = 0;
+	if(!redrawAll)
+	{
+		if((oldSelectedDirEntry & 0xFFF0) == display_min)
+		{
+			if(oldSelectedDirEntry < selectedDirEntry)
+			{
+				startOffset = oldSelectedDirEntry - display_min;
+				endOffset = display_max - selectedDirEntry;
+			}
+			else
+			{
+				startOffset = selectedDirEntry - display_min;
+				endOffset = display_max - oldSelectedDirEntry;
+			}
+		}
+	}
+	
+	for(int i(display_min + startOffset); i <= display_max - endOffset; ++i)
 	{
 		snprintf(buff, 40, "%-18s", dirEntries[i].name.c_str());
 		_lcd->locate(0, i - display_min);
