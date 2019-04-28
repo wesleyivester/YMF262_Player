@@ -203,7 +203,7 @@ void uLCD_4DGL :: text_char(char c, char col, char row, int color)     // draw a
 
 }
 
-void uLCD_4DGL::putstr(char* str, size_t len)
+void uLCD_4DGL::putstr(const char* str, size_t len)
 {
     char command[256];
     int i = 0;

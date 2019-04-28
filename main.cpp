@@ -72,8 +72,9 @@ int main()
 	//clock.period(.001);
 	//clock.write(.5);
 	
+	bool midiMode = false;
+	
 	USBMIDI midi;
-	midi.attach(process_midi_msg); 
 	
 	ymfmidi.init();
 	
@@ -84,40 +85,47 @@ int main()
 		{
 			if(!action_press)
 			{
-				if(playing)
+				if(!midiMode)
 				{
-					updateTicker.detach();
-					radplayer.Stop();
-					playing = false;
-					lcd.locate(0, 0);
-					lcd.printf("Playing Stopped\n");
+					if(playing)
+					{
+						updateTicker.detach();
+						radplayer.Stop();
+						playing = false;
+						lcd.locate(0, 0);
+						lcd.printf("Playing Stopped\n");
+					}
+					else
+					{
+						if(!dir.enterDir())
+						{
+							uint8_t* filedata;
+							size_t filedataSize;
+							dir.getSelectedFileData(filedata, filedataSize);
+
+							const char *err = RADValidate(filedata, filedataSize);
+							if(err)
+							{
+								lcd.locate(0, 0);
+								lcd.printf(err);
+							}
+							else
+							{
+								lcd.locate(0, 0);
+								lcd.printf("Playing Started\n");
+								radplayer.Init(filedata, rad_write_reg_cb, (void*)&ymf262);
+								float updateInterval = 1.0 / (float)radplayer.GetHertz();
+								updateTicker.attach([&radplayer](){
+									radplayer.Update();
+								}, updateInterval);							
+								playing = true;
+							}
+						}
+					}
 				}
 				else
 				{
-					if(!dir.enterDir())
-					{
-						uint8_t* filedata;
-						size_t filedataSize;
-						dir.getSelectedFileData(filedata, filedataSize);
-
-						const char *err = RADValidate(filedata, filedataSize);
-						if(err)
-						{
-							lcd.locate(0, 0);
-							lcd.printf(err);
-						}
-						else
-						{
-							lcd.locate(0, 0);
-							lcd.printf("Playing Started\n");
-							radplayer.Init(filedata, rad_write_reg_cb, (void*)&ymf262);
-							float updateInterval = 1.0 / (float)radplayer.GetHertz();
-							updateTicker.attach([&radplayer](){
-								radplayer.Update();
-							}, updateInterval);							
-							playing = true;
-						}
-					}
+					ymfmidi.actionPress();
 				}
 			}
 			action_press = true;
@@ -131,7 +139,10 @@ int main()
 		{
 			if(!up_press)
 			{
-				dir.selectPrev();
+				if(!midiMode)
+					dir.selectPrev();
+				else
+					ymfmidi.upPress();
 			}
 			up_press = true;
 		}
@@ -144,7 +155,10 @@ int main()
 		{
 			if(!down_press)
 			{
-				dir.selectNext();
+				if(!midiMode)
+					dir.selectNext();
+				else
+					ymfmidi.downPress();
 			}
 			down_press = true;
 		}
@@ -157,11 +171,27 @@ int main()
 		{
 			if(!action2_press)
 			{
-				updateTicker.detach();
-				playing = false;
-				lcd.locate(0, 0);
-				lcd.printf("Playing Stopped\n");
-				ymfmidi.init();
+				if(!midiMode)
+				{
+					if(playing)
+					{
+						updateTicker.detach();
+						radplayer.Stop();
+						playing = false;
+					}
+					
+					midiMode = true;
+					ymfmidi.init();
+					midi.attach(process_midi_msg);
+					ymfmidi.redraw();
+				}
+				else
+				{
+					midiMode = false;
+					ymfmidi.init();
+					midi.attach(NULL);
+					dir.redraw();
+				}
 			}
 			action2_press = true;
 		}

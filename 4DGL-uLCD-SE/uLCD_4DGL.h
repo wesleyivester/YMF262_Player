@@ -272,7 +272,7 @@ public :
     void text_height(char);
     void text_char(char, char, char, int);
     void text_string(char *, char, char, char, int);
-	void putstr(char* str, size_t len);
+	void putstr(const char* str, size_t len);
     void locate(char, char);
     void color(int);
     void putc(char);
